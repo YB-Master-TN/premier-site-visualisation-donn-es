@@ -1,10 +1,55 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Mon Site GitHub</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Super Site</title>
+    <style>
+        /* C'est ici que l'on définit le design */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 { color: #2c3e50; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover { background-color: #0056b3; }
+    </style>
 </head>
 <body>
-    <h1>Bienvenue sur ma page !</h1>
-    <p>Ceci est ma première page hébergée sur GitHub Pages.</p>
+
+    <div class="card">
+        <h1>Bonjour le monde ! 🚀</h1>
+        <p>Ceci est ma page personnalisée hébergée sur GitHub.</p>
+        <button onclick="alerte()">Cliquez ici</button>
+    </div>
+
+    <script>
+        function alerte() {
+            alert("Bravo ! Vous venez d'ajouter du JavaScript !");
+        }
+    </script>
+
 </body>
 </html>
