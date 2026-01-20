@@ -44,7 +44,56 @@
         <p>Ceci est ma page personnalisée hébergée sur GitHub.</p>
         <button onclick="alerte()">Cliquez ici</button>
     </div>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Analyse de Texte</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+        }
+        .viz-container {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden; /* Pour que les bords soient arrondis */
+        }
+        iframe {
+            border: none;
+            max-width: 100%; /* S'adapte à la largeur de l'écran */
+        }
+    </style>
+</head>
+<body>
 
+    <div class="container">
+        <h1>Ma Visualisation de Données 📊</h1>
+        <p>Voici l'analyse de mon corpus de texte via Voyant Tools :</p>
+        
+        <div class="viz-container">
+            <iframe style='width: 100%; height: 400px;' src='https://voyant-tools.org/tool/Bubbles/?corpus=2b2d9efae1c5d4f0c5da906131394234'></iframe>
+        </div>
+    </div>
+
+</body>
+</html>
     <script>
         function alerte() {
             alert("Bravo ! Vous venez d'ajouter du JavaScript !");
