@@ -161,3 +161,187 @@
     </script>
 </body>
 </html>
+<!-- ================= BOX OFFICE DATAVIZ ================= -->
+<section id="boxoffice-viz">
+
+  <h2>Top 5 des films au Box Office mondial (2013–2023)</h2>
+
+  <div class="slider-container">
+    <div class="year-display" id="boxoffice-year">2013</div>
+    <input
+      type="range"
+      min="2013"
+      max="2023"
+      step="1"
+      value="2013"
+      id="boxoffice-slider"
+    >
+  </div>
+
+  <div class="films-panel" id="boxoffice-films"></div>
+
+  <style>
+    #boxoffice-viz {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 50px 30px;
+      margin: 80px 0;
+      border-radius: 20px;
+    }
+
+    #boxoffice-viz h2 {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    #boxoffice-viz .slider-container {
+      max-width: 800px;
+      margin: 0 auto 40px;
+      text-align: center;
+    }
+
+    #boxoffice-viz .year-display {
+      font-size: 44px;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    #boxoffice-viz input[type=range] {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    #boxoffice-viz .films-panel {
+      background: white;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 30px;
+      border-radius: 14px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    #boxoffice-viz .film {
+      display: flex;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+      align-items: center;
+    }
+
+    #boxoffice-viz .film:last-child {
+      border-bottom: none;
+    }
+
+    #boxoffice-viz .rank {
+      width: 50px;
+      font-weight: bold;
+    }
+
+    #boxoffice-viz .title {
+      flex: 1;
+    }
+
+    #boxoffice-viz .boxoffice {
+      font-weight: bold;
+    }
+  </style>
+
+  <script>
+    (function () {
+
+      const data = [
+        {"year":2013,"Rank":1,"Titre":"Frozen","Worldwide":"1,280,802,282"},
+        {"year":2013,"Rank":2,"Titre":"Iron Man 3","Worldwide":"1,214,811,252"},
+        {"year":2013,"Rank":3,"Titre":"Despicable Me 2","Worldwide":"970,766,005"},
+        {"year":2013,"Rank":4,"Titre":"The Hobbit: The Desolation of Smaug","Worldwide":"958,366,855"},
+        {"year":2013,"Rank":5,"Titre":"The Hunger Games: Catching Fire","Worldwide":"865,011,746"},
+
+        {"year":2014,"Rank":1,"Titre":"Transformers: Age of Extinction","Worldwide":"1,104,054,072"},
+        {"year":2014,"Rank":2,"Titre":"The Hobbit: The Battle of the Five Armies","Worldwide":"962,201,338"},
+        {"year":2014,"Rank":3,"Titre":"Guardians of the Galaxy","Worldwide":"773,350,147"},
+        {"year":2014,"Rank":4,"Titre":"Maleficent","Worldwide":"758,536,735"},
+        {"year":2014,"Rank":5,"Titre":"The Hunger Games: Mockingjay – Part 1","Worldwide":"755,356,711"},
+
+        {"year":2015,"Rank":1,"Titre":"Star Wars: The Force Awakens","Worldwide":"2,068,223,624"},
+        {"year":2015,"Rank":2,"Titre":"Jurassic World","Worldwide":"1,671,537,444"},
+        {"year":2015,"Rank":3,"Titre":"Furious 7","Worldwide":"1,515,341,399"},
+        {"year":2015,"Rank":4,"Titre":"Avengers: Age of Ultron","Worldwide":"1,402,809,540"},
+        {"year":2015,"Rank":5,"Titre":"Minions","Worldwide":"1,159,444,662"},
+
+        {"year":2016,"Rank":1,"Titre":"Captain America: Civil War","Worldwide":"1,153,337,496"},
+        {"year":2016,"Rank":2,"Titre":"Rogue One: A Star Wars Story","Worldwide":"1,056,057,273"},
+        {"year":2016,"Rank":3,"Titre":"Finding Dory","Worldwide":"1,028,570,889"},
+        {"year":2016,"Rank":4,"Titre":"Zootopia","Worldwide":"1,025,521,689"},
+        {"year":2016,"Rank":5,"Titre":"The Jungle Book","Worldwide":"967,724,775"},
+
+        {"year":2017,"Rank":1,"Titre":"Star Wars: The Last Jedi","Worldwide":"1,334,407,706"},
+        {"year":2017,"Rank":2,"Titre":"Beauty and the Beast","Worldwide":"1,266,115,964"},
+        {"year":2017,"Rank":3,"Titre":"The Fate of the Furious","Worldwide":"1,236,005,118"},
+        {"year":2017,"Rank":4,"Titre":"Despicable Me 3","Worldwide":"1,034,800,131"},
+        {"year":2017,"Rank":5,"Titre":"Jumanji: Welcome to the Jungle","Worldwide":"962,102,237"},
+
+        {"year":2018,"Rank":1,"Titre":"Avengers: Infinity War","Worldwide":"2,048,359,754"},
+        {"year":2018,"Rank":2,"Titre":"Black Panther","Worldwide":"1,347,597,973"},
+        {"year":2018,"Rank":3,"Titre":"Jurassic World: Fallen Kingdom","Worldwide":"1,308,467,944"},
+        {"year":2018,"Rank":4,"Titre":"Incredibles 2","Worldwide":"1,242,805,359"},
+        {"year":2018,"Rank":5,"Titre":"Aquaman","Worldwide":"1,148,528,393"},
+
+        {"year":2019,"Rank":1,"Titre":"Avengers: Endgame","Worldwide":"2,797,501,328"},
+        {"year":2019,"Rank":2,"Titre":"The Lion King","Worldwide":"1,656,943,394"},
+        {"year":2019,"Rank":3,"Titre":"Frozen II","Worldwide":"1,450,026,933"},
+        {"year":2019,"Rank":4,"Titre":"Spider-Man: Far From Home","Worldwide":"1,131,927,996"},
+        {"year":2019,"Rank":5,"Titre":"Captain Marvel","Worldwide":"1,128,462,972"},
+
+        {"year":2020,"Rank":1,"Titre":"The Eight Hundred","Worldwide":"461,421,559"},
+        {"year":2020,"Rank":2,"Titre":"Bad Boys for Life","Worldwide":"426,505,244"},
+        {"year":2020,"Rank":3,"Titre":"My People, My Homeland","Worldwide":"422,390,820"},
+        {"year":2020,"Rank":4,"Titre":"Tenet","Worldwide":"365,304,105"},
+        {"year":2020,"Rank":5,"Titre":"Sonic the Hedgehog","Worldwide":"319,715,683"},
+
+        {"year":2021,"Rank":1,"Titre":"Spider-Man: No Way Home","Worldwide":"1,921,847,111"},
+        {"year":2021,"Rank":2,"Titre":"The Battle at Lake Changjin","Worldwide":"902,548,476"},
+        {"year":2021,"Rank":3,"Titre":"Hi, Mom","Worldwide":"841,674,419"},
+        {"year":2021,"Rank":4,"Titre":"No Time to Die","Worldwide":"774,153,007"},
+        {"year":2021,"Rank":5,"Titre":"F9","Worldwide":"726,229,501"},
+
+        {"year":2022,"Rank":1,"Titre":"Avatar: The Way of Water","Worldwide":"2,320,250,281"},
+        {"year":2022,"Rank":2,"Titre":"Top Gun: Maverick","Worldwide":"1,495,696,292"},
+        {"year":2022,"Rank":3,"Titre":"Jurassic World Dominion","Worldwide":"1,001,978,080"},
+        {"year":2022,"Rank":4,"Titre":"Doctor Strange in the Multiverse of Madness","Worldwide":"955,775,804"},
+        {"year":2022,"Rank":5,"Titre":"Minions: The Rise of Gru","Worldwide":"940,203,765"},
+
+        {"year":2023,"Rank":1,"Titre":"Barbie","Worldwide":"1,445,638,421"},
+        {"year":2023,"Rank":2,"Titre":"The Super Mario Bros. Movie","Worldwide":"1,361,992,475"},
+        {"year":2023,"Rank":3,"Titre":"Oppenheimer","Worldwide":"975,440,031"},
+        {"year":2023,"Rank":4,"Titre":"Guardians of the Galaxy Vol. 3","Worldwide":"845,555,777"},
+        {"year":2023,"Rank":5,"Titre":"Fast X","Worldwide":"704,875,015"}
+      ];
+
+      const slider = document.getElementById("boxoffice-slider");
+      const yearDisplay = document.getElementById("boxoffice-year");
+      const panel = document.getElementById("boxoffice-films");
+
+      function update(year) {
+        yearDisplay.textContent = year;
+        panel.innerHTML = "";
+
+        data
+          .filter(d => d.year == year)
+          .forEach(film => {
+            panel.innerHTML += `
+              <div class="film">
+                <div class="rank">#${film.Rank}</div>
+                <div class="title">${film.Titre}</div>
+                <div class="boxoffice">${film.Worldwide} $</div>
+              </div>
+            `;
+          });
+      }
+
+      slider.addEventListener("input", e => update(e.target.value));
+      update(slider.value);
+
+    })();
+  </script>
+
+</section>
+<!-- ================= END BOX OFFICE DATAVIZ ================= -->
