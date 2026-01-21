@@ -102,3 +102,62 @@
 
 </body>
 </html>
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ma Collection de Films</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #f8f9fa; padding: 40px; text-align: center; }
+        .chart-container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 700px; 
+            margin: auto; 
+        }
+        h1 { color: #333; }
+    </style>
+</head>
+<body>
+
+    <h1>Statistiques de mes 100 Films 🎬</h1>
+    
+    <div class="chart-container">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('myChart').getContext('2d');
+        
+        // Données d'exemple (vous pourrez les modifier)
+        const dataFilms = {
+            labels: ['Action', 'Comédie', 'Drame', 'SF', 'Horreur'],
+            datasets: [{
+                label: 'Nombre de films',
+                data: [25, 30, 20, 15, 10], // Le total fait 100
+                backgroundColor: [
+                    '#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff'
+                ],
+                borderWidth: 2,
+                borderRadius: 5
+            }]
+        };
+
+        new Chart(ctx, {
+            type: 'bar', // Vous pouvez changer par 'pie', 'doughnut' ou 'line'
+            data: dataFilms,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: 'Répartition par Genre' }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
