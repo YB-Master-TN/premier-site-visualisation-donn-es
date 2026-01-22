@@ -350,3 +350,363 @@ avatar_way_of_water.jpg
 oppenheimer.jpg
 barbie.jpg
 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ciné-Data 2013-2023 | Archive Complète</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --gold: #c5a059;
+            --velvet: #630d16;
+            --dark: #0a0a0a;
+            --card-bg: #1a1a1a;
+        }
+
+        body {
+            background-color: var(--dark);
+            color: #e0e0e0;
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            scroll-behavior: smooth;
+        }
+
+        /* Ambiance Cinéma */
+        header {
+            background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&q=80&w=2000');
+            background-size: cover;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-bottom: 3px solid var(--gold);
+            text-shadow: 2px 2px 10px black;
+        }
+
+        h1 {
+            font-family: 'Marcellus', serif;
+            font-size: 4rem;
+            color: var(--gold);
+            margin-bottom: 0;
+            letter-spacing: 8px;
+        }
+
+        /* Barre de Recherche Interactive */
+        .search-container {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(10, 10, 10, 0.95);
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-container input, .search-container select {
+            background: #222;
+            border: 1px solid var(--gold);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            width: 250px;
+        }
+
+        .btn-analysis {
+            background: var(--velvet);
+            color: white;
+            border: 1px solid var(--gold);
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-analysis:hover {
+            background: #a01623;
+            box-shadow: 0 0 15px var(--gold);
+        }
+
+        /* Timeline & Grille */
+        .timeline-container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .year-block {
+            margin-bottom: 100px;
+            border-top: 1px solid #333;
+            padding-top: 40px;
+        }
+
+        .year-label {
+            font-family: 'Marcellus', serif;
+            font-size: 3.5rem;
+            color: var(--gold);
+            margin-bottom: 30px;
+            display: block;
+        }
+
+        .movies-wrapper {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 30px;
+        }
+
+        .movie-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .movie-card:hover {
+            transform: scale(1.05);
+            border-color: var(--gold);
+        }
+
+        .movie-card img {
+            width: 100%;
+            height: 320px;
+            object-fit: cover;
+            filter: grayscale(20%);
+            transition: 0.3s;
+        }
+
+        .movie-card:hover img {
+            filter: grayscale(0%);
+        }
+
+        .movie-card-info {
+            padding: 15px;
+            text-align: center;
+        }
+
+        /* Modal Details */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            border: 2px solid var(--gold);
+            padding: 40px;
+            max-width: 800px;
+            display: flex;
+            gap: 30px;
+            border-radius: 10px;
+        }
+
+        /* Graphique Zone */
+        #analysis-overlay {
+            display: none;
+            padding: 40px;
+            background: white;
+            color: black;
+            border-radius: 15px;
+            max-width: 1100px;
+            margin: 20px auto;
+        }
+
+        @media (max-width: 768px) {
+            .modal-content { flex-direction: column; }
+            h1 { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>LE GRAND RIDEAU</h1>
+    <p>Une rétrospective du Box-Office Mondial</p>
+</header>
+
+<div class="search-container">
+    <input type="text" id="searchBar" placeholder="Film, réalisateur..." oninput="filterData()">
+    <select id="genreFilter" onchange="filterData()">
+        <option value="">Tous les genres</option>
+    </select>
+    <button class="btn-analysis" onclick="showMarketAnalysis()">📊 ANALYSE DE MARCHÉ</button>
+</div>
+
+<div id="analysis-overlay">
+    <div style="display:flex; justify-content: space-between; align-items: center;">
+        <h2>Analyse Comparative des Top 1 (2013-2023)</h2>
+        <div>
+            <button onclick="downloadPDF()" style="padding:10px; cursor:pointer">📥 Export PDF</button>
+            <button onclick="document.getElementById('analysis-overlay').style.display='none'" style="padding:10px; cursor:pointer">Fermer</button>
+        </div>
+    </div>
+    <canvas id="marketChart" height="400"></canvas>
+    <div style="margin-top:20px; padding:15px; background:#f0f0f0; border-left:5px solid var(--velvet)">
+        <strong>Insight :</strong> La période 2020-2021 montre l'impact structurel de la crise sanitaire, tandis que 2022 marque le retour des "Mega-Blockbusters" dépassant les 2 milliards.
+    </div>
+</div>
+
+<div class="timeline-container" id="mainTimeline">
+    </div>
+
+<div id="movieModal" class="modal" onclick="this.style.display='none'">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div id="modalPoster"></div>
+        <div id="modalDetails"></div>
+    </div>
+</div>
+
+<script>
+    // Chargement des données complètes (Basé sur votre fichier 56 entrées)
+    // Structure: [Année, Rang, Titre, Revenus, Genre, Réalisateur, Pays]
+    const rawData = [
+        [2013,1,"Frozen",1280802282,"Animation","Chris Buck","USA"],[2013,2,"Iron Man 3",1214811252,"Action","Shane Black","USA"],[2013,3,"Despicable Me 2",970766005,"Animation","Pierre Coffin","USA"],[2013,4,"The Hobbit: Smaug",959027944,"Fantasy","Peter Jackson","NZ"],[2013,5,"The Hunger Games: CF",865011746,"Sci-Fi","Francis Lawrence","USA"],
+        [2014,1,"Transformers: Age of Extinction",1104054072,"Action","Michael Bay","USA"],[2014,2,"The Hobbit: Battle",955119788,"Fantasy","Peter Jackson","NZ"],[2014,3,"Guardians of the Galaxy",773350147,"Sci-Fi","James Gunn","USA"],[2014,4,"Maleficent",758411779,"Fantasy","Robert Stromberg","USA"],[2014,5,"The Hunger Games: MJ1",755356711,"Sci-Fi","Francis Lawrence","USA"],
+        [2015,1,"Star Wars: Force Awakens",2068223624,"Sci-Fi","J.J. Abrams","USA"],[2015,2,"Jurassic World",1671537444,"Action","Colin Trevorrow","USA"],[2015,3,"Furious 7",1515341399,"Action","James Wan","USA"],[2015,4,"Avengers: Age of Ultron",1405018048,"Action","Joss Whedon","USA"],[2015,5,"Minions",1159398397,"Animation","Pierre Coffin","USA"],
+        [2016,1,"Captain America: Civil War",1153337496,"Action","Russo Brothers","USA"],[2016,2,"Rogue One",1056057273,"Sci-Fi","Gareth Edwards","USA"],[2016,3,"Finding Dory",1028570889,"Animation","Andrew Stanton","USA"],[2016,4,"Zootopia",1023784195,"Animation","Byron Howard","USA"],[2016,5,"The Jungle Book",966550600,"Adventure","Jon Favreau","USA"],
+        [2017,1,"Star Wars: Last Jedi",1332539889,"Sci-Fi","Rian Johnson","USA"],[2017,2,"Beauty and the Beast",1263521126,"Fantasy","Bill Condon","USA"],[2017,3,"The Fate of the Furious",1236005118,"Action","F. Gary Gray","USA"],[2017,4,"Despicable Me 3",1034799409,"Animation","Pierre Coffin","USA"],[2017,5,"Spider-Man: Homecoming",880166924,"Action","Jon Watts","USA"],
+        [2018,1,"Avengers: Infinity War",2048359754,"Action","Russo Brothers","USA"],[2018,2,"Black Panther",1346913161,"Action","Ryan Coogler","USA"],[2018,3,"Jurassic World: Fallen",1308467944,"Action","J.A. Bayona","USA"],[2018,4,"Incredibles 2",1242805359,"Animation","Brad Bird","USA"],[2018,5,"Aquaman",1148485886,"Action","James Wan","USA"],
+        [2019,1,"Avengers: Endgame",2797501328,"Action","Russo Brothers","USA"],[2019,2,"The Lion King",1656943394,"Animation","Jon Favreau","USA"],[2019,3,"Frozen II",1450026933,"Animation","Chris Buck","USA"],[2019,4,"Spider-Man: Far From Home",1131927996,"Action","Jon Watts","USA"],[2019,5,"Captain Marvel",1128274794,"Action","Anna Boden","USA"],
+        [2020,1,"The Eight Hundred",461421559,"War","Guan Hu","China"],[2020,2,"Demon Slayer",506523013,"Anime","Haruo Sotozaki","Japan"],[2020,3,"My People, My Homeland",422390986,"Comedy","Multiple","China"],[2020,4,"Bad Boys for Life",426505244,"Action","Adil El Arbi","USA"],[2020,5,"Tenet",363656670,"Sci-Fi","Christopher Nolan","UK"],
+        [2021,1,"Spider-Man: No Way Home",1921847111,"Action","Jon Watts","USA"],[2021,2,"The Battle at Lake Changjin",913540514,"War","Chen Kaige","China"],[2021,3,"Hi, Mom",822009764,"Comedy","Jia Ling","China"],[2021,4,"No Time to Die",774153007,"Action","Cary Joji Fukunaga","UK"],[2021,5,"F9: The Fast Saga",726229501,"Action","Justin Lin","USA"],
+        [2022,1,"Avatar: The Way of Water",2320250281,"Sci-Fi","James Cameron","USA"],[2022,2,"Top Gun: Maverick",1495696292,"Action","Joseph Kosinski","USA"],[2022,3,"Jurassic World Dominion",1001978080,"Action","Colin Trevorrow","USA"],[2022,4,"Doctor Strange",955775804,"Action","Sam Raimi","USA"],[2022,5,"Minions: Rise of Gru",939628210,"Animation","Kyle Balda","USA"],
+        [2023,1,"Barbie",1445638421,"Comedy","Greta Gerwig","USA"],[2023,2,"The Super Mario Bros.",1361975033,"Animation","Aaron Horvath","USA"],[2023,3,"Oppenheimer",960000000,"History","Christopher Nolan","USA"],[2023,4,"Guardians 3",845555777,"Sci-Fi","James Gunn","USA"],[2023,5,"Fast X",704709660,"Action","Louis Leterrier","USA"]
+    ];
+
+    const movies = rawData.map(d => ({
+        year: d[0], rank: d[1], title: d[2], revenue: d[3], genre: d[4], director: d[5], country: d[6]
+    }));
+
+    // Initialisation
+    function init() {
+        renderTimeline(movies);
+        populateGenres();
+    }
+
+    function renderTimeline(data) {
+        const container = document.getElementById('mainTimeline');
+        container.innerHTML = '';
+        const years = [...new Set(data.map(m => m.year))].sort((a,b) => b-a);
+
+        years.forEach(year => {
+            const yearMovies = data.filter(m => m.year === year);
+            if(yearMovies.length === 0) return;
+
+            const section = document.createElement('div');
+            section.className = 'year-block';
+            section.innerHTML = `
+                <span class="year-label">${year}</span>
+                <div class="movies-wrapper">
+                    ${yearMovies.map(m => `
+                        <div class="movie-card" onclick="openDetails(${JSON.stringify(m).replace(/"/g, '&quot;')})">
+                            <img src="https://via.placeholder.com/300x450/1a1a1a/c5a059?text=${encodeURIComponent(m.title)}" alt="${m.title}">
+                            <div class="movie-card-info">
+                                <strong>#${m.rank} ${m.title}</strong><br>
+                                <small style="color:var(--gold)">$${(m.revenue/1e6).toFixed(0)}M</small>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(section);
+        });
+    }
+
+    function populateGenres() {
+        const genres = [...new Set(movies.map(m => m.genre))].sort();
+        const select = document.getElementById('genreFilter');
+        genres.forEach(g => {
+            const opt = document.createElement('option');
+            opt.value = g; opt.innerText = g;
+            select.appendChild(opt);
+        });
+    }
+
+    function filterData() {
+        const query = document.getElementById('searchBar').value.toLowerCase();
+        const genre = document.getElementById('genreFilter').value;
+        
+        const filtered = movies.filter(m => {
+            const matchText = m.title.toLowerCase().includes(query) || m.director.toLowerCase().includes(query);
+            const matchGenre = genre === "" || m.genre === genre;
+            return matchText && matchGenre;
+        });
+        renderTimeline(filtered);
+    }
+
+    function openDetails(m) {
+        const modal = document.getElementById('movieModal');
+        document.getElementById('modalPoster').innerHTML = `<img src="https://via.placeholder.com/300x450/1a1a1a/c5a059?text=${encodeURIComponent(m.title)}" style="width:300px; border-radius:5px; border:1px solid var(--gold)">`;
+        document.getElementById('modalDetails').innerHTML = `
+            <h2 style="color:var(--gold); font-family:Marcellus; font-size:2.5rem; margin-top:0">${m.title}</h2>
+            <p style="font-size:1.2rem"><strong>Année :</strong> ${m.year}</p>
+            <p style="font-size:1.2rem"><strong>Réalisateur :</strong> ${m.director}</p>
+            <p style="font-size:1.2rem"><strong>Genre :</strong> ${m.genre}</p>
+            <p style="font-size:1.2rem"><strong>Origine :</strong> ${m.country}</p>
+            <p style="font-size:2rem; color:var(--gold); margin-top:30px">$ ${m.revenue.toLocaleString()}</p>
+        `;
+        modal.style.display = 'flex';
+    }
+
+    // Graphique & Analyse
+    let myChart = null;
+    function showMarketAnalysis() {
+        document.getElementById('analysis-overlay').style.display = 'block';
+        window.scrollTo(0, 500);
+        
+        const ctx = document.getElementById('marketChart').getContext('2d');
+        const tops = movies.filter(m => m.rank === 1).sort((a,b) => a.year - b.year);
+
+        if(myChart) myChart.destroy();
+
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: tops.map(m => m.year),
+                datasets: [{
+                    label: 'Revenus du N°1 Mondial (en USD)',
+                    data: tops.map(m => m.revenue),
+                    backgroundColor: tops.map(m => m.year === 2020 ? '#630d16' : '#c5a059'),
+                    borderColor: '#000',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    }
+
+    async function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+        const canvas = await html2canvas(document.getElementById('analysis-overlay'));
+        const img = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('l', 'mm', 'a4');
+        pdf.text("Rapport Box-Office 2013-2023", 10, 10);
+        pdf.addImage(img, 'PNG', 10, 20, 280, 150);
+        pdf.save("Rapport_Cinema_Analyse.pdf");
+    }
+
+    window.onload = init;
+</script>
+
+</body>
+</html>
