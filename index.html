@@ -39,6 +39,7 @@
     .grid line { stroke: rgba(139,115,85,0.12); }
     button { background:linear-gradient(135deg,#d4af37 0%,#b8941f 100%); color:#0a0a0a; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; font-size:0.95em; font-weight:bold; text-transform:uppercase; }
     button:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(212,175,55,0.3); }
+    /* small screens */
     @media (max-width:560px){ .movie-poster{height:220px} }
 </style>
 </head>
@@ -115,72 +116,76 @@
 <div class="tooltip" id="tooltip"></div>
 
 <script>
+/*
+  DATA: converted box office to millions (float)
+  Source: data you pasted (numbers are original world box office in USD; converted to M)
+*/
 const movieData = [
-  {year:2013,title:"Frozen",boxOffice:1280.802282,genre:"Animation",director:"Chris Buck, Jennifer Lee",actor:"Kristen Bell",poster:"https://image.tmdb.org/t/p/w500/kgwjIb1CkFCMvELmFzjS5tpAE9h.jpg"},
-  {year:2013,title:"Iron Man 3",boxOffice:1214.811252,genre:"Action / Super-héros",director:"Shane Black",actor:"Robert Downey Jr.",poster:"https://image.tmdb.org/t/p/w500/qhPtAc1TKbMPqNvcdXSOn9Bn7hZ.jpg"},
-  {year:2013,title:"Despicable Me 2",boxOffice:970.766005,genre:"Animation",director:"Pierre Coffin, Chris Renaud",actor:"Steve Carell",poster:"https://image.tmdb.org/t/p/w500/5Fh4NdoEnCjENLwQgetSsJk9qjH.jpg"},
-  {year:2013,title:"The Hobbit: The Desolation of Smaug",boxOffice:958.366855,genre:"Fantasy",director:"Peter Jackson",actor:"Martin Freeman",poster:"https://image.tmdb.org/t/p/w500/xQYiXsmeW7RSXyoKT526s1YFr04.jpg"},
-  {year:2013,title:"The Hunger Games: Catching Fire",boxOffice:865.011746,genre:"Science-fiction",director:"Francis Lawrence",actor:"Jennifer Lawrence",poster:"https://image.tmdb.org/t/p/w500/v9qVkyS467dGTeCu8Y8BDLhJGIh.jpg"},
+  {year:2013,title:"Frozen",boxOffice:1280.802282,genre:"Animation",director:"Chris Buck, Jennifer Lee",actor:"Kristen Bell"},
+  {year:2013,title:"Iron Man 3",boxOffice:1214.811252,genre:"Action / Super-héros",director:"Shane Black",actor:"Robert Downey Jr."},
+  {year:2013,title:"Despicable Me 2",boxOffice:970.766005,genre:"Animation",director:"Pierre Coffin, Chris Renaud",actor:"Steve Carell"},
+  {year:2013,title:"The Hobbit: The Desolation of Smaug",boxOffice:958.366855,genre:"Fantasy",director:"Peter Jackson",actor:"Martin Freeman"},
+  {year:2013,title:"The Hunger Games: Catching Fire",boxOffice:865.011746,genre:"Science-fiction",director:"Francis Lawrence",actor:"Jennifer Lawrence"},
 
-  {year:2014,title:"Transformers: Age of Extinction",boxOffice:1104.054072,genre:"Action / Science-fiction",director:"Michael Bay",actor:"Mark Wahlberg",poster:"https://image.tmdb.org/t/p/w500/jyzrfx2WaeY60kYZpPYepSjGz4S.jpg"},
-  {year:2014,title:"The Hobbit: The Battle of the Five Armies",boxOffice:962.201338,genre:"Fantasy",director:"Peter Jackson",actor:"Martin Freeman",poster:"https://image.tmdb.org/t/p/w500/9zePziPFOy2cV1kGPi4KcNdsSsY.jpg"},
-  {year:2014,title:"Guardians of the Galaxy",boxOffice:773.350147,genre:"Action / Science-fiction",director:"James Gunn",actor:"Chris Pratt",poster:"https://image.tmdb.org/t/p/w500/r7vmZjiyZw9rpJMQJdXpjgiCOk9.jpg"},
-  {year:2014,title:"Maleficent",boxOffice:758.536735,genre:"Fantasy",director:"Robert Stromberg",actor:"Angelina Jolie",poster:"https://image.tmdb.org/t/p/w500/bDG3yei6AJlEAK3A5wN7RwFXQ7V.jpg"},
-  {year:2014,title:"The Hunger Games: Mockingjay – Part 1",boxOffice:755.356711,genre:"Science-fiction",director:"Francis Lawrence",actor:"Jennifer Lawrence",poster:"https://image.tmdb.org/t/p/w500/cWERd8rgbw7bCMZlwP207HUXxym.jpg"},
+  {year:2014,title:"Transformers: Age of Extinction",boxOffice:1104.054072,genre:"Action / Science-fiction",director:"Michael Bay",actor:"Mark Wahlberg"},
+  {year:2014,title:"The Hobbit: The Battle of the Five Armies",boxOffice:962.201338,genre:"Fantasy",director:"Peter Jackson",actor:"Martin Freeman"},
+  {year:2014,title:"Guardians of the Galaxy",boxOffice:773.350147,genre:"Action / Science-fiction",director:"James Gunn",actor:"Chris Pratt"},
+  {year:2014,title:"Maleficent",boxOffice:758.536735,genre:"Fantasy",director:"Robert Stromberg",actor:"Angelina Jolie"},
+  {year:2014,title:"The Hunger Games: Mockingjay \u2013 Part 1",boxOffice:755.356711,genre:"Science-fiction",director:"Francis Lawrence",actor:"Jennifer Lawrence"},
 
-  {year:2015,title:"Star Wars: The Force Awakens",boxOffice:2068.223624,genre:"Science-fiction",director:"J. J. Abrams",actor:"Harrison Ford",poster:"https://image.tmdb.org/t/p/w500/wqnLdwVXoBjKibFRR5U3y0aDUhs.jpg"},
-  {year:2015,title:"Jurassic World",boxOffice:1671.537444,genre:"Science-fiction",director:"Colin Trevorrow",actor:"Chris Pratt",poster:"https://image.tmdb.org/t/p/w500/jw7Q4W5GpJhBVz4AClFU0KoNEm9.jpg"},
-  {year:2015,title:"Furious 7",boxOffice:1515.341399,genre:"Action",director:"James Wan",actor:"Vin Diesel",poster:"https://image.tmdb.org/t/p/w500/dCgm7efXDmiABSdWDHBDBx2jwmn.jpg"},
-  {year:2015,title:"Avengers: Age of Ultron",boxOffice:1402.80954,genre:"Action / Super-héros",director:"Joss Whedon",actor:"Robert Downey Jr.",poster:"https://image.tmdb.org/t/p/w500/4ssDuvEDkSArWEdyBl2X5EHvYKU.jpg"},
-  {year:2015,title:"Minions",boxOffice:1159.444662,genre:"Animation",director:"Pierre Coffin, Kyle Balda",actor:"Sandra Bullock",poster:"https://image.tmdb.org/t/p/w500/dr02BdCNAUPVU07aOodwPYv6HCf.jpg"},
+  {year:2015,title:"Star Wars: The Force Awakens",boxOffice:2068.223624,genre:"Science-fiction",director:"J. J. Abrams",actor:"Harrison Ford"},
+  {year:2015,title:"Jurassic World",boxOffice:1671.537444,genre:"Science-fiction",director:"Colin Trevorrow",actor:"Chris Pratt"},
+  {year:2015,title:"Furious 7",boxOffice:1515.341399,genre:"Action",director:"James Wan",actor:"Vin Diesel"},
+  {year:2015,title:"Avengers: Age of Ultron",boxOffice:1402.80954,genre:"Action / Super-héros",director:"Joss Whedon",actor:"Robert Downey Jr."},
+  {year:2015,title:"Minions",boxOffice:1159.444662,genre:"Animation",director:"Pierre Coffin, Kyle Balda",actor:"Sandra Bullock"},
 
-  {year:2016,title:"Captain America: Civil War",boxOffice:1153.337496,genre:"Action / Super-héros",director:"Anthony & Joe Russo",actor:"Chris Evans",poster:"https://image.tmdb.org/t/p/w500/rAGiXaUfPu0D8qCMw4tUX8H5Zwi.jpg"},
-  {year:2016,title:"Rogue One: A Star Wars Story",boxOffice:1056.057273,genre:"Science-fiction",director:"Gareth Edwards",actor:"Felicity Jones",poster:"https://image.tmdb.org/t/p/w500/i0yw1mFbB7sNGHCs7EXZPzFkdA1.jpg"},
-  {year:2016,title:"Finding Dory",boxOffice:1028.570889,genre:"Animation",director:"Andrew Stanton",actor:"Ellen DeGeneres",poster:"https://image.tmdb.org/t/p/w500/yFjVlsJmEMacU0BNUwdGZlo2ixq.jpg"},
-  {year:2016,title:"Zootopia",boxOffice:1025.521689,genre:"Animation",director:"Byron Howard, Rich Moore",actor:"Ginnifer Goodwin",poster:"https://image.tmdb.org/t/p/w500/hlK0e0wAQ3VLuJcsfIYPvTLS6QQ.jpg"},
-  {year:2016,title:"The Jungle Book",boxOffice:967.724775,genre:"Aventure / Fantasy",director:"Jon Favreau",actor:"Neel Sethi",poster:"https://image.tmdb.org/t/p/w500/vOipe2myi26UDwP978hsYOrnUWC.jpg"},
+  {year:2016,title:"Captain America: Civil War",boxOffice:1153.337496,genre:"Action / Super-héros",director:"Anthony & Joe Russo",actor:"Chris Evans"},
+  {year:2016,title:"Rogue One: A Star Wars Story",boxOffice:1056.057273,genre:"Science-fiction",director:"Gareth Edwards",actor:"Felicity Jones"},
+  {year:2016,title:"Finding Dory",boxOffice:1028.570889,genre:"Animation",director:"Andrew Stanton",actor:"Ellen DeGeneres"},
+  {year:2016,title:"Zootopia",boxOffice:1025.521689,genre:"Animation",director:"Byron Howard, Rich Moore",actor:"Ginnifer Goodwin"},
+  {year:2016,title:"The Jungle Book",boxOffice:967.724775,genre:"Aventure / Fantasy",director:"Jon Favreau",actor:"Neel Sethi"},
 
-  {year:2017,title:"Star Wars: The Last Jedi",boxOffice:1334.407706,genre:"Science-fiction",director:"Rian Johnson",actor:"Mark Hamill",poster:"https://image.tmdb.org/t/p/w500/kOVEVeg59E0wsnXmF9nrh6OmWII.jpg"},
-  {year:2017,title:"Beauty and the Beast",boxOffice:1266.115964,genre:"Fantasy",director:"Bill Condon",actor:"Emma Watson",poster:"https://image.tmdb.org/t/p/w500/hKegSKIDep2ewJWPUQD7u0KqFIp.jpg"},
-  {year:2017,title:"The Fate of the Furious",boxOffice:1236.005118,genre:"Action",director:"F. Gary Gray",actor:"Vin Diesel",poster:"https://image.tmdb.org/t/p/w500/dImWM7GJqryWJO9LHa3XQ8DD5NH.jpg"},
-  {year:2017,title:"Despicable Me 3",boxOffice:1034.800131,genre:"Animation",director:"Kyle Balda",actor:"Steve Carell",poster:"https://image.tmdb.org/t/p/w500/6t3YWl7hrr88lCEFlGmyCz1TcoB.jpg"},
-  {year:2017,title:"Jumanji: Welcome to the Jungle",boxOffice:962.102237,genre:"Aventure",director:"Jake Kasdan",actor:"Dwayne Johnson",poster:"https://image.tmdb.org/t/p/w500/bXrZ5iHBEjH7WMidbUDQ0U2xbmR.jpg"},
+  {year:2017,title:"Star Wars: The Last Jedi",boxOffice:1334.407706,genre:"Science-fiction",director:"Rian Johnson",actor:"Mark Hamill"},
+  {year:2017,title:"Beauty and the Beast",boxOffice:1266.115964,genre:"Fantasy",director:"Bill Condon",actor:"Emma Watson"},
+  {year:2017,title:"The Fate of the Furious",boxOffice:1236.005118,genre:"Action",director:"F. Gary Gray",actor:"Vin Diesel"},
+  {year:2017,title:"Despicable Me 3",boxOffice:1034.800131,genre:"Animation",director:"Kyle Balda",actor:"Steve Carell"},
+  {year:2017,title:"Jumanji: Welcome to the Jungle",boxOffice:962.102237,genre:"Aventure",director:"Jake Kasdan",actor:"Dwayne Johnson"},
 
-  {year:2018,title:"Avengers: Infinity War",boxOffice:2048.359754,genre:"Action / Super-héros",director:"Anthony & Joe Russo",actor:"Robert Downey Jr.",poster:"https://image.tmdb.org/t/p/w500/7WsyChQLEftFiDOVTGkv3hFpyyt.jpg"},
-  {year:2018,title:"Black Panther",boxOffice:1347.597973,genre:"Action / Super-héros",director:"Ryan Coogler",actor:"Chadwick Boseman",poster:"https://image.tmdb.org/t/p/w500/uxzzxijgPIY7slzFvMotPv8wjKA.jpg"},
-  {year:2018,title:"Jurassic World: Fallen Kingdom",boxOffice:1308.467944,genre:"Science-fiction",director:"J. A. Bayona",actor:"Chris Pratt",poster:"https://image.tmdb.org/t/p/w500/c9XxwwhPHdaImA2f1WEfEsbhaFB.jpg"},
-  {year:2018,title:"Incredibles 2",boxOffice:1242.805359,genre:"Animation",director:"Brad Bird",actor:"Craig T. Nelson",poster:"https://image.tmdb.org/t/p/w500/9lFKBtaVIhP7E2Pk0IY1CwTKTMZ.jpg"},
-  {year:2018,title:"Aquaman",boxOffice:1148.528393,genre:"Action / Super-héros",director:"James Wan",actor:"Jason Momoa",poster:"https://image.tmdb.org/t/p/w500/zdw7Wf97vsQ0YnGomxDqfcEdUjX.jpg"},
+  {year:2018,title:"Avengers: Infinity War",boxOffice:2048.359754,genre:"Action / Super-héros",director:"Anthony & Joe Russo",actor:"Robert Downey Jr."},
+  {year:2018,title:"Black Panther",boxOffice:1347.597973,genre:"Action / Super-héros",director:"Ryan Coogler",actor:"Chadwick Boseman"},
+  {year:2018,title:"Jurassic World: Fallen Kingdom",boxOffice:1308.467944,genre:"Science-fiction",director:"J. A. Bayona",actor:"Chris Pratt"},
+  {year:2018,title:"Incredibles 2",boxOffice:1242.805359,genre:"Animation",director:"Brad Bird",actor:"Craig T. Nelson"},
+  {year:2018,title:"Aquaman",boxOffice:1148.528393,genre:"Action / Super-héros",director:"James Wan",actor:"Jason Momoa"},
 
-  {year:2019,title:"Avengers: Endgame",boxOffice:2797.501328,genre:"Action / Super-héros",director:"Anthony & Joe Russo",actor:"Robert Downey Jr.",poster:"https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg"},
-  {year:2019,title:"The Lion King",boxOffice:1656.943394,genre:"Animation",director:"Jon Favreau",actor:"Donald Glover",poster:"https://image.tmdb.org/t/p/w500/dzBtMocZuJbjLOXvrl4zGYigDzh.jpg"},
-  {year:2019,title:"Frozen II",boxOffice:1450.026933,genre:"Animation",director:"Chris Buck, Jennifer Lee",actor:"Idina Menzel",poster:"https://image.tmdb.org/t/p/w500/pjeMs3yqRmFL3giJy4PMXWZTTPa.jpg"},
-  {year:2019,title:"Spider-Man: Far From Home",boxOffice:1131.927996,genre:"Action / Super-héros",director:"Jon Watts",actor:"Tom Holland",poster:"https://image.tmdb.org/t/p/w500/4q2NNj4S5dG2RLF9CpXsej7yXl.jpg"},
-  {year:2019,title:"Captain Marvel",boxOffice:1128.462972,genre:"Action / Super-héros",director:"Anna Boden, Ryan Fleck",actor:"Brie Larson",poster:"https://image.tmdb.org/t/p/w500/AtsgWhDnHTq68L0lLsUrCnM7TjG.jpg"},
+  {year:2019,title:"Avengers: Endgame",boxOffice:2797.501328,genre:"Action / Super-héros",director:"Anthony & Joe Russo",actor:"Robert Downey Jr."},
+  {year:2019,title:"The Lion King",boxOffice:1656.943394,genre:"Animation",director:"Jon Favreau",actor:"Donald Glover"},
+  {year:2019,title:"Frozen II",boxOffice:1450.026933,genre:"Animation",director:"Chris Buck, Jennifer Lee",actor:"Idina Menzel"},
+  {year:2019,title:"Spider-Man: Far From Home",boxOffice:1131.927996,genre:"Action / Super-héros",director:"Jon Watts",actor:"Tom Holland"},
+  {year:2019,title:"Captain Marvel",boxOffice:1128.462972,genre:"Action / Super-héros",director:"Anna Boden, Ryan Fleck",actor:"Brie Larson"},
 
-  {year:2020,title:"The Eight Hundred",boxOffice:461.421559,genre:"Guerre",director:"Guan Hu",actor:"",poster:"https://image.tmdb.org/t/p/w500/6PmNCSWE1i0GnxxsABNJhmr6gEz.jpg"},
-  {year:2020,title:"Bad Boys for Life",boxOffice:426.505244,genre:"Action",director:"Adil El Arbi, Bilall Fallah",actor:"Will Smith",poster:"https://image.tmdb.org/t/p/w500/y95lQLnuNKdPAzw9F9Ab8kJ80c3.jpg"},
-  {year:2020,title:"My People, My Homeland",boxOffice:422.39082,genre:"Comédie",director:"Collectif",actor:"",poster:"https://image.tmdb.org/t/p/w500/pxf2MFeSmNXfijFcaT1kCUjPIAJ.jpg"},
-  {year:2020,title:"Tenet",boxOffice:365.304105,genre:"Science-fiction",director:"Christopher Nolan",actor:"John David Washington",poster:"https://image.tmdb.org/t/p/w500/k68nPLbIST6NP96JmTxmZijEvCA.jpg"},
-  {year:2020,title:"Sonic the Hedgehog",boxOffice:319.715683,genre:"Aventure",director:"Jeff Fowler",actor:"Ben Schwartz",poster:"https://image.tmdb.org/t/p/w500/aQvJ5WPzZgYVDrxLX4R6cLJCEaQ.jpg"},
+  {year:2020,title:"The Eight Hundred",boxOffice:461.421559,genre:"Guerre",director:"Guan Hu",actor:""},
+  {year:2020,title:"Bad Boys for Life",boxOffice:426.505244,genre:"Action",director:"Adil El Arbi, Bilall Fallah",actor:"Will Smith"},
+  {year:2020,title:"My People, My Homeland",boxOffice:422.39082,genre:"Comédie",director:"Collectif",actor:""},
+  {year:2020,title:"Tenet",boxOffice:365.304105,genre:"Science-fiction",director:"Christopher Nolan",actor:"John David Washington"},
+  {year:2020,title:"Sonic the Hedgehog",boxOffice:319.715683,genre:"Aventure",director:"Jeff Fowler",actor:"Ben Schwartz"},
 
-  {year:2021,title:"Spider-Man: No Way Home",boxOffice:1921.847111,genre:"Action / Super-héros",director:"Jon Watts",actor:"Tom Holland",poster:"https://image.tmdb.org/t/p/w500/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg"},
-  {year:2021,title:"The Battle at Lake Changjin",boxOffice:902.548476,genre:"Guerre",director:"Chen Kaige",actor:"",poster:"https://image.tmdb.org/t/p/w500/9Uf9tbHzMBAS1E5WUZfPPjO4WL2.jpg"},
-  {year:2021,title:"Hi, Mom",boxOffice:841.674419,genre:"Comédie dramatique",director:"Jia Ling",actor:"",poster:"https://image.tmdb.org/t/p/w500/h4F2V5xHENOGch7aJJ55JqvXhxu.jpg"},
-  {year:2021,title:"No Time to Die",boxOffice:774.153007,genre:"Action",director:"Cary Joji Fukunaga",actor:"Daniel Craig",poster:"https://image.tmdb.org/t/p/w500/iUgygt3fscRoKWCV1d0C7FbM9TP.jpg"},
-  {year:2021,title:"F9",boxOffice:726.229501,genre:"Action",director:"Justin Lin",actor:"Vin Diesel",poster:"https://image.tmdb.org/t/p/w500/bOFaAXmWWXC3Rbv4u4uM9ZSzRXP.jpg"},
+  {year:2021,title:"Spider-Man: No Way Home",boxOffice:1921.847111,genre:"Action / Super-héros",director:"Jon Watts",actor:"Tom Holland"},
+  {year:2021,title:"The Battle at Lake Changjin",boxOffice:902.548476,genre:"Guerre",director:"Chen Kaige",actor:""},
+  {year:2021,title:"Hi, Mom",boxOffice:841.674419,genre:"Comédie dramatique",director:"Jia Ling",actor:""},
+  {year:2021,title:"No Time to Die",boxOffice:774.153007,genre:"Action",director:"Cary Joji Fukunaga",actor:"Daniel Craig"},
+  {year:2021,title:"F9",boxOffice:726.229501,genre:"Action",director:"Justin Lin",actor:"Vin Diesel"},
 
-  {year:2022,title:"Avatar: The Way of Water",boxOffice:2320.250281,genre:"Science-fiction",director:"James Cameron",actor:"Sam Worthington",poster:"https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg"},
-  {year:2022,title:"Top Gun: Maverick",boxOffice:1495.696292,genre:"Action",director:"Joseph Kosinski",actor:"Tom Cruise",poster:"https://image.tmdb.org/t/p/w500/62HCnUTziyWcpDaBO2i1DX17ljH.jpg"},
-  {year:2022,title:"Jurassic World Dominion",boxOffice:1001.97808,genre:"Science-fiction",director:"Colin Trevorrow",actor:"Chris Pratt",poster:"https://image.tmdb.org/t/p/w500/kAVRgw7GgK1CfYEJq8ME6EvRIgU.jpg"},
-  {year:2022,title:"Doctor Strange in the Multiverse of Madness",boxOffice:955.775804,genre:"Action / Super-héros",director:"Sam Raimi",actor:"Benedict Cumberbatch",poster:"https://image.tmdb.org/t/p/w500/9Gtg2DzBhmYamXBS1hKAhiwbBKS.jpg"},
-  {year:2022,title:"Minions: The Rise of Gru",boxOffice:940.203765,genre:"Animation",director:"Kyle Balda",actor:"Steve Carell",poster:"https://image.tmdb.org/t/p/w500/wKiOkZTN9lUUUNZLmtnwubZYONg.jpg"},
+  {year:2022,title:"Avatar: The Way of Water",boxOffice:2320.250281,genre:"Science-fiction",director:"James Cameron",actor:"Sam Worthington"},
+  {year:2022,title:"Top Gun: Maverick",boxOffice:1495.696292,genre:"Action",director:"Joseph Kosinski",actor:"Tom Cruise"},
+  {year:2022,title:"Jurassic World Dominion",boxOffice:1001.97808,genre:"Science-fiction",director:"Colin Trevorrow",actor:"Chris Pratt"},
+  {year:2022,title:"Doctor Strange in the Multiverse of Madness",boxOffice:955.775804,genre:"Action / Super-héros",director:"Sam Raimi",actor:"Benedict Cumberbatch"},
+  {year:2022,title:"Minions: The Rise of Gru",boxOffice:940.203765,genre:"Animation",director:"Kyle Balda",actor:"Steve Carell"},
 
-  {year:2023,title:"Barbie",boxOffice:1445.638421,genre:"Comédie / Fantasy",director:"Greta Gerwig",actor:"Margot Robbie",poster:"https://image.tmdb.org/t/p/w500/iuFNMS8U5cb6xfzi51Dbkovj7vM.jpg"},
-  {year:2023,title:"The Super Mario Bros. Movie",boxOffice:1361.992475,genre:"Animation",director:"Aaron Horvath, Michael Jelenic",actor:"Chris Pratt",poster:"https://image.tmdb.org/t/p/w500/qNBAXBIQlnOThrVvA6mA2B5ggV6.jpg"},
-  {year:2023,title:"Oppenheimer",boxOffice:975.440031,genre:"Drame historique",director:"Christopher Nolan",actor:"Cillian Murphy",poster:"https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg"},
-  {year:2023,title:"Guardians of the Galaxy Vol. 3",boxOffice:845.555777,genre:"Action / Super-héros",director:"James Gunn",actor:"Chris Pratt",poster:"https://image.tmdb.org/t/p/w500/r2J02Z2OpNTctfOSN1Ydgii51I3.jpg"},
-  {year:2023,title:"Fast X",boxOffice:704.875015,genre:"Action",director:"Louis Leterrier",actor:"Vin Diesel",poster:"https://image.tmdb.org/t/p/w500/fiVW06jE7z9YnO4trhaMEdclSiC.jpg"}
+  {year:2023,title:"Barbie",boxOffice:1445.638421,genre:"Comédie / Fantasy",director:"Greta Gerwig",actor:"Margot Robbie"},
+  {year:2023,title:"The Super Mario Bros. Movie",boxOffice:1361.992475,genre:"Animation",director:"Aaron Horvath, Michael Jelenic",actor:"Chris Pratt"},
+  {year:2023,title:"Oppenheimer",boxOffice:975.440031,genre:"Drame historique",director:"Christopher Nolan",actor:"Cillian Murphy"},
+  {year:2023,title:"Guardians of the Galaxy Vol. 3",boxOffice:845.555777,genre:"Action / Super-héros",director:"James Gunn",actor:"Chris Pratt"},
+  {year:2023,title:"Fast X",boxOffice:704.875015,genre:"Action",director:"Louis Leterrier",actor:"Vin Diesel"}
 ];
 
 let filteredData = [...movieData];
@@ -201,12 +206,14 @@ const genreColors = {
   'Comédie / Fantasy': '#b8941f',
   'Guerre': '#8b7355',
   'Comédie dramatique': '#8b7355',
+  // fallback color
 };
 
 function init() {
   populateFilters();
-  applyFilters();
+  applyFilters(); // will update stats & draw everything
   window.addEventListener('resize', () => {
+    // redraw visible chart(s)
     drawMainChart();
     drawGenreChart();
     drawDirectorChart();
@@ -293,6 +300,7 @@ function updateStats() {
   const total = filteredData.length;
   const totalRevenue = d3.sum(filteredData, d => d.boxOffice);
   const avgRevenue = total > 0 ? (totalRevenue / total) : 0;
+  // find top genre by count
   const genreCounts = Array.from(d3.rollup(filteredData, v => v.length, d => d.genre).entries ?
     d3.rollup(filteredData, v => v.length, d => d.genre) : new Map());
   let topGenre = '-';
@@ -301,11 +309,12 @@ function updateStats() {
   }
 
   document.getElementById('totalMovies').textContent = total;
-  document.getElementById('totalBoxOffice').textContent = ' + (totalRevenue/1000).toFixed(1) + 'B';
-  document.getElementById('avgRevenue').textContent = ' + avgRevenue.toFixed(1) + 'M';
+  document.getElementById('totalBoxOffice').textContent = '$' + (totalRevenue/1000).toFixed(1) + 'B'; // since boxOffice is in millions, /1000 = billions
+  document.getElementById('avgRevenue').textContent = '$' + avgRevenue.toFixed(1) + 'M';
   document.getElementById('topGenre').textContent = topGenre;
 }
 
+// ---------- MAIN SCATTER (overview) ----------
 function drawMainChart() {
   const container = d3.select('#mainChart');
   container.selectAll('*').remove();
@@ -332,11 +341,14 @@ function drawMainChart() {
     .domain([0, d3.max(filteredData, d => d.boxOffice) * 1.06])
     .range([height, 0]);
 
+  // grid + axes
   svg.append('g').attr('class','grid').call(d3.axisLeft(y).tickSize(-width).tickFormat(''));
   svg.append('g').attr('class','axis').attr('transform',`translate(0,${height})`).call(d3.axisBottom(x).ticks((d3.max(filteredData,d=>d.year)-d3.min(filteredData,d=>d.year))+1).tickFormat(d3.format('d')));
-  svg.append('g').attr('class','axis').call(d3.axisLeft(y).tickFormat(d => ' + d + 'M'));
+  svg.append('g').attr('class','axis').call(d3.axisLeft(y).tickFormat(d => '$' + d + 'M'));
 
+  // points
   const tooltip = d3.select('#tooltip');
+
   const rScale = d3.scaleSqrt().domain([0, d3.max(filteredData, d=>d.boxOffice)]).range([4,18]);
 
   svg.selectAll('circle')
@@ -355,7 +367,7 @@ function drawMainChart() {
           .html(`<div class="tooltip-title">${d.title}</div>
                  <strong>Year:</strong> ${d.year}<br>
                  <strong>Genre:</strong> ${d.genre}<br>
-                 <strong>Box Office:</strong> ${d.boxOffice.toFixed(1)}M<br>
+                 <strong>Box Office:</strong> $${d.boxOffice.toFixed(1)}M<br>
                  <strong>Director:</strong> ${d.director}<br>
                  <strong>Star:</strong> ${d.actor || 'N/A'}`)
           .style('left', (event.pageX + 12) + 'px')
@@ -372,6 +384,7 @@ function drawMainChart() {
     .attr('r', d => rScale(d.boxOffice));
 }
 
+// ---------- GENRE CHART (bar) ----------
 function drawGenreChart() {
   const container = d3.select('#genreChart');
   container.selectAll('*').remove();
@@ -381,6 +394,7 @@ function drawGenreChart() {
     return;
   }
 
+  // aggregate by genre
   const genreMap = d3.rollup(filteredData, v => d3.sum(v, d => d.boxOffice), d => d.genre);
   const genreData = Array.from(genreMap, ([genre, revenue]) => ({genre, revenue})).sort((a,b)=>b.revenue - a.revenue);
 
@@ -397,7 +411,7 @@ function drawGenreChart() {
   svg.append('g').attr('transform',`translate(0,${height})`).attr('class','axis')
     .call(d3.axisBottom(x)).selectAll('text').attr('transform','rotate(-45)').style('text-anchor','end');
 
-  svg.append('g').attr('class','axis').call(d3.axisLeft(y).tickFormat(d => ' + d + 'M'));
+  svg.append('g').attr('class','axis').call(d3.axisLeft(y).tickFormat(d => '$' + d + 'M'));
 
   const tooltip = d3.select('#tooltip');
 
@@ -414,7 +428,7 @@ function drawGenreChart() {
       d3.select(this).attr('opacity',1);
       tooltip.classed('active', true)
         .html(`<div class="tooltip-title">${d.genre}</div>
-               <strong>Total Revenue:</strong> ${d.revenue.toFixed(1)}M`);
+               <strong>Total Revenue:</strong> $${d.revenue.toFixed(1)}M`);
       tooltip.style('left', (event.pageX + 12) + 'px').style('top', (event.pageY - 12) + 'px');
     })
     .on('mousemove', function(event){
@@ -429,6 +443,7 @@ function drawGenreChart() {
     .attr('height', d => height - y(d.revenue));
 }
 
+// ---------- DIRECTOR CHART (horizontal bars) ----------
 function drawDirectorChart() {
   const container = d3.select('#directorChart');
   container.selectAll('*').remove();
@@ -452,7 +467,7 @@ function drawDirectorChart() {
   const y = d3.scaleBand().domain(directorData.map(d => d.director)).range([0, height]).padding(0.15);
 
   svg.append('g').attr('class','axis').call(d3.axisLeft(y));
-  svg.append('g').attr('class','axis').attr('transform',`translate(0,${height})`).call(d3.axisBottom(x).tickFormat(d=> ' + d + 'M'));
+  svg.append('g').attr('class','axis').attr('transform',`translate(0,${height})`).call(d3.axisBottom(x).tickFormat(d=> '$' + d + 'M'));
 
   const tooltip = d3.select('#tooltip');
 
@@ -470,7 +485,7 @@ function drawDirectorChart() {
       tooltip.classed('active', true)
         .html(`<div class="tooltip-title">${d.director}</div>
                <strong>Movies (in view):</strong> ${d.count}<br>
-               <strong>Total Revenue:</strong> ${d.revenue.toFixed(1)}M`);
+               <strong>Total Revenue:</strong> $${d.revenue.toFixed(1)}M`);
       tooltip.style('left', (event.pageX + 12) + 'px').style('top', (event.pageY - 12) + 'px');
     })
     .on('mousemove', function(event){
@@ -484,6 +499,7 @@ function drawDirectorChart() {
     .attr('width', d => x(d.revenue));
 }
 
+// ---------- TIMELINE CHART (area + line) ----------
 function drawTimelineChart() {
   const container = d3.select('#timelineChart');
   container.selectAll('*').remove();
@@ -508,7 +524,7 @@ function drawTimelineChart() {
 
   svg.append('g').attr('class','grid').call(d3.axisLeft(y).tickSize(-width).tickFormat(''));
   svg.append('g').attr('class','axis').attr('transform',`translate(0,${height})`).call(d3.axisBottom(x).ticks(yearData.length).tickFormat(d3.format('d')));
-  svg.append('g').attr('class','axis').call(d3.axisLeft(y).tickFormat(d => ' + d + 'M'));
+  svg.append('g').attr('class','axis').call(d3.axisLeft(y).tickFormat(d => '$' + d + 'M'));
 
   const gradient = svg.append('defs').append('linearGradient').attr('id','grad1').attr('x1','0%').attr('y1','0%').attr('x2','0%').attr('y2','100%');
   gradient.append('stop').attr('offset','0%').attr('stop-color','#d4af37').attr('stop-opacity',0.35);
@@ -541,7 +557,7 @@ function drawTimelineChart() {
       tooltip.classed('active', true)
         .html(`<div class="tooltip-title">${d.year}</div>
                <strong>Movies:</strong> ${d.count}<br>
-               <strong>Total Revenue:</strong> ${d.revenue.toFixed(1)}M`);
+               <strong>Total Revenue:</strong> $${d.revenue.toFixed(1)}M`);
       tooltip.style('left', (event.pageX + 12) + 'px').style('top', (event.pageY - 12) + 'px');
     })
     .on('mousemove', function(event){
@@ -553,6 +569,7 @@ function drawTimelineChart() {
     });
 }
 
+// ---------- MOVIE GALLERY ----------
 function drawMovieGallery() {
   const grid = d3.select('#movieGrid');
   grid.selectAll('*').remove();
@@ -562,21 +579,21 @@ function drawMovieGallery() {
     return;
   }
 
+  const placeholder = colorForGenre => `https://via.placeholder.com/300x450/${colorForGenre.replace('#','')}/0a0a0a?text=Poster`;
+
   const cards = grid.selectAll('.movie-card').data(filteredData, d => d.title).join('div').attr('class','movie-card');
 
   cards.append('img').attr('class','movie-poster')
-    .attr('src', d => d.poster)
-    .attr('alt', d => d.title)
-    .on('error', function(event, d) {
-      d3.select(this).attr('src', `https://via.placeholder.com/300x450/d4af37/0a0a0a?text=${encodeURIComponent(d.title)}`);
-    });
+    .attr('src', d => placeholder((genreColors[d.genre]||'#d4af37')))
+    .attr('alt', d => d.title);
 
   const info = cards.append('div').attr('class','movie-info');
 
   info.append('div').attr('class','movie-title').text(d => d.title);
-  info.append('div').attr('class','movie-details').html(d => `<strong>${d.year}</strong> • ${d.genre}<br>Box Office: <strong>${d.boxOffice.toFixed(1)}M</strong><br>Director: ${d.director}<br>Star: ${d.actor || 'N/A'}`);
+  info.append('div').attr('class','movie-details').html(d => `<strong>${d.year}</strong> • ${d.genre}<br>Box Office: <strong>$${d.boxOffice.toFixed(1)}M</strong><br>Director: ${d.director}<br>Star: ${d.actor || 'N/A'}`);
 }
 
+// ---------- tabs ----------
 function switchTab(event, tab) {
   currentTab = tab;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -606,10 +623,8 @@ function switchTab(event, tab) {
   }
 }
 
+// initialize
 init();
 </script>
 </body>
 </html>
-
-function populateFilters() {
-  const years = [...new Set(movieData.map(d =>
