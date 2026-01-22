@@ -216,4 +216,400 @@ function init() {
 }
 
 function populateFilters() {
+  const years = [...new Set(movieData.map(d => d.year))].sort((a,b)=>a-b);
+  const genres = [...new Set(movieData.map(d => d.genre))].sort();
+  const directors = [...new Set(movieData.map(d => d.director))].sort();
+  const actors = [...new Set(movieData.map(d => d.actor || 'Unknown'))].sort();
+
+  const yearSelect = document.getElementById('yearFilter');
+  years.forEach(y => {
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    yearSelect.appendChild(opt);
+  });
+
+  const genreSelect = document.getElementById('genreFilter');
+  genres.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g;
+    opt.textContent = g;
+    genreSelect.appendChild(opt);
+  });
+
+  const directorSelect = document.getElementById('directorFilter');
+  directors.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = d;
+    directorSelect.appendChild(opt);
+  });
+
+  const actorSelect = document.getElementById('actorFilter');
+  actors.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a;
+    opt.textContent = a;
+    actorSelect.appendChild(opt);
+  });
+
+  document.getElementById('yearFilter').addEventListener('change', applyFilters);
+  document.getElementById('genreFilter').addEventListener('change', applyFilters);
+  document.getElementById('directorFilter').addEventListener('change', applyFilters);
+  document.getElementById('actorFilter').addEventListener('change', applyFilters);
+}
+
+function applyFilters() {
+  const year = document.getElementById('yearFilter').value;
+  const genre = document.getElementById('genreFilter').value;
+  const director = document.getElementById('directorFilter').value;
+  const actor = document.getElementById('actorFilter').value;
+
+  filteredData = movieData.filter(d => {
+    const actorVal = d.actor || 'Unknown';
+    return (year === 'all' || d.year == year) &&
+           (genre === 'all' || d.genre === genre) &&
+           (director === 'all' || d.director === director) &&
+           (actor === 'all' || actorVal === actor);
+  });
+
+  updateStats();
+  drawMainChart();
+  drawGenreChart();
+  drawDirectorChart();
+  drawTimelineChart();
+  drawMovieGallery();
+}
+
+function resetFilters() {
+  document.getElementById('yearFilter').value = 'all';
+  document.getElementById('genreFilter').value = 'all';
+  document.getElementById('directorFilter').value = 'all';
+  document.getElementById('actorFilter').value = 'all';
+  applyFilters();
+}
+
+function updateStats() {
+  const total = filteredData.length;
+  const totalRevenue = d3.sum(filteredData, d => d.boxOffice);
+  const avgRevenue = total > 0 ? (totalRevenue / total) : 0;
+  const genreCounts = Array.from(d3.rollup(filteredData, v => v.length, d => d.genre).entries ?
+    d3.rollup(filteredData, v => v.length, d => d.genre) : new Map());
+  let topGenre = '-';
+  if (genreCounts && genreCounts.size) {
+    topGenre = Array.from(genreCounts.entries()).sort((a,b)=>b[1]-a[1])[0][0];
+  }
+
+  document.getElementById('totalMovies').textContent = total;
+  document.getElementById('totalBoxOffice').textContent = ' + (totalRevenue/1000).toFixed(1) + 'B';
+  document.getElementById('avgRevenue').textContent = ' + avgRevenue.toFixed(1) + 'M';
+  document.getElementById('topGenre').textContent = topGenre;
+}
+
+function drawMainChart() {
+  const container = d3.select('#mainChart');
+  container.selectAll('*').remove();
+
+  if (!filteredData.length) {
+    container.append('p').style('padding','80px').style('text-align','center').style('color','#8b7355').text('No data for the selected filters');
+    return;
+  }
+
+  const margin = {top:40,right:60,bottom:60,left:80};
+  const width = container.node().clientWidth - margin.left - margin.right;
+  const height = 480 - margin.top - margin.bottom;
+
+  const svg = container.append('svg')
+    .attr('width', width + margin.left + margin.right)
+    .attr('height', height + margin.top + margin.bottom)
+    .append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+  const x = d3.scaleLinear()
+    .domain([d3.min(filteredData, d => d.year)-0.5, d3.max(filteredData, d => d.year)+0.5])
+    .range([0, width]);
+
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(filteredData, d => d.boxOffice) * 1.06])
+    .range([height, 0]);
+
+  svg.append('g').attr('class','grid').call(d3.axisLeft(y).tickSize(-width).tickFormat(''));
+  svg.append('g').attr('class','axis').attr('transform',`translate(0,${height})`).call(d3.axisBottom(x).ticks((d3.max(filteredData,d=>d.year)-d3.min(filteredData,d=>d.year))+1).tickFormat(d3.format('d')));
+  svg.append('g').attr('class','axis').call(d3.axisLeft(y).tickFormat(d => ' + d + 'M'));
+
+  const tooltip = d3.select('#tooltip');
+  const rScale = d3.scaleSqrt().domain([0, d3.max(filteredData, d=>d.boxOffice)]).range([4,18]);
+
+  svg.selectAll('circle')
+    .data(filteredData, d => d.title + d.year)
+    .join('circle')
+    .attr('cx', d => x(d.year))
+    .attr('cy', d => y(d.boxOffice))
+    .attr('r', 0)
+    .attr('fill', d => genreColors[d.genre] || '#d4af37')
+    .attr('stroke', '#8b7355')
+    .attr('stroke-width', 1.5)
+    .attr('opacity', 0.95)
+    .on('mouseover', function(event,d){
+        d3.select(this).attr('stroke-width',3).attr('opacity',1.0);
+        tooltip.classed('active', true)
+          .html(`<div class="tooltip-title">${d.title}</div>
+                 <strong>Year:</strong> ${d.year}<br>
+                 <strong>Genre:</strong> ${d.genre}<br>
+                 <strong>Box Office:</strong> ${d.boxOffice.toFixed(1)}M<br>
+                 <strong>Director:</strong> ${d.director}<br>
+                 <strong>Star:</strong> ${d.actor || 'N/A'}`)
+          .style('left', (event.pageX + 12) + 'px')
+          .style('top', (event.pageY - 12) + 'px');
+    })
+    .on('mousemove', function(event){
+        tooltip.style('left', (event.pageX + 12) + 'px').style('top', (event.pageY - 12) + 'px');
+    })
+    .on('mouseout', function(){
+        d3.select(this).attr('stroke-width',1.5).attr('opacity',0.95);
+        tooltip.classed('active', false);
+    })
+    .transition().duration(700)
+    .attr('r', d => rScale(d.boxOffice));
+}
+
+function drawGenreChart() {
+  const container = d3.select('#genreChart');
+  container.selectAll('*').remove();
+
+  if (!filteredData.length) {
+    container.append('p').style('padding','80px').style('text-align','center').style('color','#8b7355').text('No data for the selected filters');
+    return;
+  }
+
+  const genreMap = d3.rollup(filteredData, v => d3.sum(v, d => d.boxOffice), d => d.genre);
+  const genreData = Array.from(genreMap, ([genre, revenue]) => ({genre, revenue})).sort((a,b)=>b.revenue - a.revenue);
+
+  const margin = {top:20,right:20,bottom:120,left:80};
+  const width = container.node().clientWidth - margin.left - margin.right;
+  const height = 480 - margin.top - margin.bottom;
+
+  const svg = container.append('svg').attr('width', width + margin.left + margin.right).attr('height', height + margin.top + margin.bottom)
+    .append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+  const x = d3.scaleBand().domain(genreData.map(d=>d.genre)).range([0,width]).padding(0.25);
+  const y = d3.scaleLinear().domain([0, d3.max(genreData, d=>d.revenue) * 1.1]).range([height,0]);
+
+  svg.append('g').attr('transform',`translate(0,${height})`).attr('class','axis')
+    .call(d3.axisBottom(x)).selectAll('text').attr('transform','rotate(-45)').style('text-anchor','end');
+
+  svg.append('g').attr('class','axis').call(d3.axisLeft(y).tickFormat(d => ' + d + 'M'));
+
+  const tooltip = d3.select('#tooltip');
+
+  svg.selectAll('rect')
+    .data(genreData)
+    .join('rect')
+    .attr('x', d => x(d.genre))
+    .attr('y', height)
+    .attr('width', x.bandwidth())
+    .attr('height', 0)
+    .attr('fill', d => genreColors[d.genre] || '#d4af37')
+    .attr('opacity', 0.95)
+    .on('mouseover', function(event,d){
+      d3.select(this).attr('opacity',1);
+      tooltip.classed('active', true)
+        .html(`<div class="tooltip-title">${d.genre}</div>
+               <strong>Total Revenue:</strong> ${d.revenue.toFixed(1)}M`);
+      tooltip.style('left', (event.pageX + 12) + 'px').style('top', (event.pageY - 12) + 'px');
+    })
+    .on('mousemove', function(event){
+      tooltip.style('left', (event.pageX + 12) + 'px').style('top', (event.pageY - 12) + 'px');
+    })
+    .on('mouseout', function(){
+      d3.select(this).attr('opacity',0.95);
+      tooltip.classed('active', false);
+    })
+    .transition().duration(700)
+    .attr('y', d => y(d.revenue))
+    .attr('height', d => height - y(d.revenue));
+}
+
+function drawDirectorChart() {
+  const container = d3.select('#directorChart');
+  container.selectAll('*').remove();
+
+  if (!filteredData.length) {
+    container.append('p').style('padding','80px').style('text-align','center').style('color','#8b7355').text('No data for the selected filters');
+    return;
+  }
+
+  const directorMap = d3.rollup(filteredData, v => ({count: v.length, revenue: d3.sum(v, d=>d.boxOffice)}), d => d.director);
+  const directorData = Array.from(directorMap, ([director,data]) => ({director, ...data})).sort((a,b)=>b.revenue - a.revenue).slice(0,10);
+
+  const margin = {top:20,right:20,bottom:40,left:220};
+  const width = container.node().clientWidth - margin.left - margin.right;
+  const height = 480 - margin.top - margin.bottom;
+
+  const svg = container.append('svg').attr('width', width + margin.left + margin.right).attr('height', height + margin.top + margin.bottom)
+    .append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+  const x = d3.scaleLinear().domain([0, d3.max(directorData, d => d.revenue) * 1.05]).range([0, width]);
+  const y = d3.scaleBand().domain(directorData.map(d => d.director)).range([0, height]).padding(0.15);
+
+  svg.append('g').attr('class','axis').call(d3.axisLeft(y));
+  svg.append('g').attr('class','axis').attr('transform',`translate(0,${height})`).call(d3.axisBottom(x).tickFormat(d=> ' + d + 'M'));
+
+  const tooltip = d3.select('#tooltip');
+
+  svg.selectAll('rect')
+    .data(directorData)
+    .join('rect')
+    .attr('x', 0)
+    .attr('y', d => y(d.director))
+    .attr('height', y.bandwidth())
+    .attr('width', 0)
+    .attr('fill', '#d4af37')
+    .attr('opacity', 0.95)
+    .on('mouseover', function(event,d){
+      d3.select(this).attr('fill','#b8941f');
+      tooltip.classed('active', true)
+        .html(`<div class="tooltip-title">${d.director}</div>
+               <strong>Movies (in view):</strong> ${d.count}<br>
+               <strong>Total Revenue:</strong> ${d.revenue.toFixed(1)}M`);
+      tooltip.style('left', (event.pageX + 12) + 'px').style('top', (event.pageY - 12) + 'px');
+    })
+    .on('mousemove', function(event){
+      tooltip.style('left', (event.pageX + 12) + 'px').style('top', (event.pageY - 12) + 'px');
+    })
+    .on('mouseout', function(){
+      d3.select(this).attr('fill','#d4af37');
+      tooltip.classed('active', false);
+    })
+    .transition().duration(700)
+    .attr('width', d => x(d.revenue));
+}
+
+function drawTimelineChart() {
+  const container = d3.select('#timelineChart');
+  container.selectAll('*').remove();
+
+  if (!filteredData.length) {
+    container.append('p').style('padding','80px').style('text-align','center').style('color','#8b7355').text('No data for the selected filters');
+    return;
+  }
+
+  const yearMap = d3.rollup(filteredData, v => ({count: v.length, revenue: d3.sum(v, d => d.boxOffice)}), d => d.year);
+  const yearData = Array.from(yearMap, ([year, data]) => ({year:+year, ...data})).sort((a,b)=>a.year - b.year);
+
+  const margin = {top:40,right:60,bottom:60,left:80};
+  const width = container.node().clientWidth - margin.left - margin.right;
+  const height = 480 - margin.top - margin.bottom;
+
+  const svg = container.append('svg').attr('width', width + margin.left + margin.right).attr('height', height + margin.top + margin.bottom)
+    .append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+  const x = d3.scaleLinear().domain(d3.extent(yearData, d => d.year)).range([0, width]);
+  const y = d3.scaleLinear().domain([0, d3.max(yearData, d => d.revenue) * 1.06]).range([height, 0]);
+
+  svg.append('g').attr('class','grid').call(d3.axisLeft(y).tickSize(-width).tickFormat(''));
+  svg.append('g').attr('class','axis').attr('transform',`translate(0,${height})`).call(d3.axisBottom(x).ticks(yearData.length).tickFormat(d3.format('d')));
+  svg.append('g').attr('class','axis').call(d3.axisLeft(y).tickFormat(d => ' + d + 'M'));
+
+  const gradient = svg.append('defs').append('linearGradient').attr('id','grad1').attr('x1','0%').attr('y1','0%').attr('x2','0%').attr('y2','100%');
+  gradient.append('stop').attr('offset','0%').attr('stop-color','#d4af37').attr('stop-opacity',0.35);
+  gradient.append('stop').attr('offset','100%').attr('stop-color','#d4af37').attr('stop-opacity',0);
+
+  const area = d3.area()
+    .x(d => x(d.year))
+    .y0(height)
+    .y1(d => y(d.revenue))
+    .curve(d3.curveMonotoneX);
+
+  svg.append('path').datum(yearData).attr('fill','url(#grad1)').attr('d', area);
+
+  const line = d3.line().x(d => x(d.year)).y(d => y(d.revenue)).curve(d3.curveMonotoneX);
+  svg.append('path').datum(yearData).attr('fill','none').attr('stroke','#d4af37').attr('stroke-width',3).attr('d', line);
+
+  const tooltip = d3.select('#tooltip');
+
+  svg.selectAll('circle')
+    .data(yearData)
+    .join('circle')
+    .attr('cx', d => x(d.year))
+    .attr('cy', d => y(d.revenue))
+    .attr('r', 6)
+    .attr('fill', '#d4af37')
+    .attr('stroke', '#0a0a0a')
+    .attr('stroke-width', 2)
+    .on('mouseover', function(event,d){
+      d3.select(this).attr('r',10);
+      tooltip.classed('active', true)
+        .html(`<div class="tooltip-title">${d.year}</div>
+               <strong>Movies:</strong> ${d.count}<br>
+               <strong>Total Revenue:</strong> ${d.revenue.toFixed(1)}M`);
+      tooltip.style('left', (event.pageX + 12) + 'px').style('top', (event.pageY - 12) + 'px');
+    })
+    .on('mousemove', function(event){
+      tooltip.style('left', (event.pageX + 12) + 'px').style('top', (event.pageY - 12) + 'px');
+    })
+    .on('mouseout', function(){
+      d3.select(this).attr('r',6);
+      tooltip.classed('active', false);
+    });
+}
+
+function drawMovieGallery() {
+  const grid = d3.select('#movieGrid');
+  grid.selectAll('*').remove();
+
+  if (!filteredData.length) {
+    grid.append('p').style('padding','80px').style('text-align','center').style('color','#8b7355').style('grid-column','1 / -1').text('No movies available for the selected filters');
+    return;
+  }
+
+  const cards = grid.selectAll('.movie-card').data(filteredData, d => d.title).join('div').attr('class','movie-card');
+
+  cards.append('img').attr('class','movie-poster')
+    .attr('src', d => d.poster)
+    .attr('alt', d => d.title)
+    .on('error', function(event, d) {
+      d3.select(this).attr('src', `https://via.placeholder.com/300x450/d4af37/0a0a0a?text=${encodeURIComponent(d.title)}`);
+    });
+
+  const info = cards.append('div').attr('class','movie-info');
+
+  info.append('div').attr('class','movie-title').text(d => d.title);
+  info.append('div').attr('class','movie-details').html(d => `<strong>${d.year}</strong> • ${d.genre}<br>Box Office: <strong>${d.boxOffice.toFixed(1)}M</strong><br>Director: ${d.director}<br>Star: ${d.actor || 'N/A'}`);
+}
+
+function switchTab(event, tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+
+  document.getElementById('overviewViz').style.display = 'none';
+  document.getElementById('genreViz').style.display = 'none';
+  document.getElementById('directorViz').style.display = 'none';
+  document.getElementById('timelineViz').style.display = 'none';
+  document.getElementById('galleryViz').style.display = 'none';
+
+  if (tab === 'overview') {
+    document.getElementById('overviewViz').style.display = 'block';
+    drawMainChart();
+  } else if (tab === 'genre') {
+    document.getElementById('genreViz').style.display = 'block';
+    drawGenreChart();
+  } else if (tab === 'director') {
+    document.getElementById('directorViz').style.display = 'block';
+    drawDirectorChart();
+  } else if (tab === 'timeline') {
+    document.getElementById('timelineViz').style.display = 'block';
+    drawTimelineChart();
+  } else if (tab === 'gallery') {
+    document.getElementById('galleryViz').style.display = 'block';
+    drawMovieGallery();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
+
+function populateFilters() {
   const years = [...new Set(movieData.map(d =>
